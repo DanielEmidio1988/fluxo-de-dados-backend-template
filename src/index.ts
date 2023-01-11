@@ -20,16 +20,44 @@ app.get("/accounts", (req: Request, res: Response) => {
     res.send(accounts)
 })
 
-app.get("/accounts/:id", (req: Request, res: Response) => {
+app.get("/accounts/:id", (req: Request, res: Response) => {   
+
+    try {
+
     const id = req.params.id
 
     const result = accounts.find((account) => account.id === id) 
 
+    if(!result){
+        res.status(404)
+        throw new Error("Conta não encontrada! Verifique a Id")
+    }
+
     res.status(200).send(result)
+        
+    } catch (error) {
+
+        console.log(error)
+        if(res.statusCode === 200){
+            res.status(500)
+        }
+
+        res.send(error.message)
+        
+    }
+
+
 })
 
 app.delete("/accounts/:id", (req: Request, res: Response) => {
+    
+    try {
     const id = req.params.id
+
+    if(id[0] !== 'a'){
+        res.status(400)
+        throw new Error("Id inválido. Deve iniciar com a letra 'a'")
+    }
 
     const accountIndex = accounts.findIndex((account) => account.id === id)
 
@@ -37,16 +65,48 @@ app.delete("/accounts/:id", (req: Request, res: Response) => {
         accounts.splice(accountIndex, 1)
     }
 
-    res.status(200).send("Item deletado com sucesso")
+    res.status(200).send("Item deletado com sucesso") 
+
+    } catch (error) {
+
+        console.log(error)
+        if(res.statusCode === 200){
+            res.status(500)
+        }
+
+        res.send(error.message)
+        
+    }
+
 })
 
 app.put("/accounts/:id", (req: Request, res: Response) => {
+try {
     const id = req.params.id
 
     const newId = req.body.id as string | undefined
     const newOwnerName = req.body.ownerName as string | undefined
     const newBalance = req.body.balance as number | undefined
     const newType = req.body.type as ACCOUNT_TYPE | undefined
+
+    if(newBalance !==undefined){
+        if(typeof newBalance !== "number"){
+            res.status(400)
+            throw new Error("'Balance' precisa ser um numero")
+        }
+
+        if(newBalance < 0){
+            res.status(400)
+            throw new Error("'Balance' não pode ser negativo")
+        }
+    }
+
+    if(newType !== undefined){
+        if(newType !== "Ouro" && newType !== "Platina" && newType !== "Black"){
+            res.status(400)
+            throw new Error('Type deve ser uma categoria válida!')
+        }
+    }
 
     const account = accounts.find((account) => account.id === id) 
 
@@ -59,4 +119,17 @@ app.put("/accounts/:id", (req: Request, res: Response) => {
     }
 
     res.status(200).send("Atualização realizada com sucesso")
+    
+} catch (error) {
+
+        console.log(error)
+        if(res.statusCode === 200){
+            res.status(500)
+        }
+
+        res.send(error.message)
+    
+}
+
+
 })
